@@ -26,9 +26,8 @@ void gerar_vetor_aleatorio(int vetor[], int tam, int max_val) {
     for (int i = 0; i < tam; i++) {
         int num_aleatorio;
         do {
-            // Gera número entre 1 e max_val (inclusive)
             num_aleatorio = (rand() % max_val) + 1;
-        } while (existe_no_vetor(num_aleatorio, vetor, i)); // Verifica se já foi inserido
+        } while (existe_no_vetor(num_aleatorio, vetor, i)); // Evita repetição
         
         vetor[i] = num_aleatorio;
     }
@@ -43,16 +42,23 @@ void exibir_vetor(int vetor[], int tam, const char* titulo) {
     printf("\n\n");
 }
 
+// --- Função para liberar memória da árvore ---
+void liberar_arvore(No* raiz) {
+    if (raiz == NULL) return;
+    liberar_arvore(raiz->esquerda);
+    liberar_arvore(raiz->direita);
+    free(raiz);
+}
+
 // --- Função Principal ---
 
 int main() {
-    // Inicializa a semente do gerador aleatório
     srand(time(NULL));
 
-    int vetor_original[TAM_VETOR] = {0}; // Inicializa com zeros
+    int vetor_original[TAM_VETOR] = {0};
     int vetor_ordenado[TAM_VETOR];
     long n_comparacoes = 0;
-    No* raiz_bst = NULL; // Importante inicializar a raiz como NULL
+    No* raiz_bst = NULL;
 
     // --- Saída 1: Nomes e Matrículas ---
     printf("=========================================\n");
@@ -68,15 +74,12 @@ int main() {
 
     // 1. Geração do Vetor
     gerar_vetor_aleatorio(vetor_original, TAM_VETOR, VALOR_MAX);
-    
-    // Guarda uma cópia para a ordenação (requisito 1)
     memcpy(vetor_ordenado, vetor_original, TAM_VETOR * sizeof(int));
 
     // --- Saída 2: Vetor Original ---
     exibir_vetor(vetor_original, TAM_VETOR, "--- 2. Vetor Original (Nao Ordenado) ---");
 
-    // 3. Ordenação do Vetor
-    // O ponteiro &n_comparacoes é passado para a função atualizar o valor
+    // 3. Ordenação do Vetor (Selection Sort)
     selectionSort(vetor_ordenado, TAM_VETOR, &n_comparacoes);
 
     // --- Saída 3: Vetor Ordenado ---
@@ -84,11 +87,13 @@ int main() {
 
     // --- Saída 4: Algoritmo e Comparações ---
     printf("--- 4. Analise da Ordenacao ---\n");
-    printf("Algoritmo usado: Selection Sort (Resultado Modulo 1)\n");
+    int modulo = 22 % 3;
+    if (modulo == 0) printf("Algoritmo: Bubble Sort | Percurso: Pre-Ordem\n");
+    else if (modulo == 1) printf("Algoritmo: Selection Sort | Percurso: Em-Ordem\n");
+    else printf("Algoritmo: Insertion Sort | Percurso: Pos-Ordem\n");
     printf("Total de comparacoes: %ld\n\n", n_comparacoes);
     
     // 4. Construção da Árvore Binária de Busca (BST)
-    // DEVE ser feita com os valores originais (não ordenados)
     for (int i = 0; i < TAM_VETOR; i++) {
         raiz_bst = inserir_no(raiz_bst, vetor_original[i]);
     }
@@ -103,8 +108,9 @@ int main() {
     printf("Altura: %d\n", altura(raiz_bst));
     printf("=========================================\n");
 
-    // (Opcional: liberar memória da árvore - não exigido, mas boa prática)
-    // implementar free_tree(raiz_bst);
+    // --- Liberação da Memória ---
+    liberar_arvore(raiz_bst);
+    raiz_bst = NULL;
 
     return 0;
 }
